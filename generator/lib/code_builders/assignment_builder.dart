@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:smartstruct_generator/models/source_assignment.dart';
@@ -36,6 +37,7 @@ Expression generateSourceFieldAssignment(SourceAssignment sourceAssignment,
     final sourceField = sourceAssignment.field!;
     final sourceReference = refer(sourceAssignment.sourceName!);
     sourceFieldAssignment = sourceReference.property(sourceField.name);
+
     // list support
     if (sourceAssignment.shouldAssignList()) {
       final sourceListType = _getGenericTypes(sourceField.type).first;
@@ -50,16 +52,49 @@ Expression generateSourceFieldAssignment(SourceAssignment sourceAssignment,
         expr = refer(matchingMappingListMethods.first.name);
       }
 
-      sourceFieldAssignment =
-          // source.{field}.map
-          sourceReference
-              .property(sourceField.name)
-              .property('map')
-              // (expr)
-              .call([expr])
-              //.toList()
-              .property('toList')
-              .call([]);
+      final sourceIsNullable =
+          sourceField.type.nullabilitySuffix == NullabilitySuffix.question;
+      final targetIsNullable =
+          targetField.type.nullabilitySuffix == NullabilitySuffix.question;
+
+      if (sourceIsNullable) {
+        if (targetIsNullable) {
+          sourceFieldAssignment =
+              // source.{field}.map
+              sourceReference
+                  .property(sourceField.name)
+                  .nullSafeProperty('map')
+                  // (expr)
+                  .call([expr])
+                  //.toList()
+                  .property('toList')
+                  .call([]);
+        } else {
+          sourceFieldAssignment =
+              // source.{field}.map
+              sourceReference
+                  .property(sourceField.name)
+                  .nullSafeProperty('map')
+                  // (expr)
+                  .call([expr])
+                  //.toList()
+                  .property('toList')
+                  .call([])
+                  // ?? []
+                  .ifNullThen(refer('[]'));
+        }
+      } else {
+        sourceFieldAssignment =
+            // source.{field}.map
+            sourceReference
+                .property(sourceField.name)
+                .property('map')
+                // (expr)
+                .call([expr])
+                //.toList()
+                .property('toList')
+                .call([]);
+      }
     } else {
       // found a mapping method in the class which will map the source to target
       final matchingMappingMethods = _findMatchingMappingMethod(
