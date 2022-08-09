@@ -2,6 +2,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:smartstruct_generator/code_builders/method_builder.dart';
+
 import 'parameter_copy.dart';
 
 Library buildMapperClass(
@@ -18,13 +19,19 @@ List<Method> _generateStaticMethods(
     ClassElement abstractClass, Map<String, dynamic> config) {
   var staticMethods = abstractClass.methods
       .where((method) => method.isStatic && !_isPrimitive(method.returnType))
-      .map((method) => buildStaticMapperImplementation(config, method, abstractClass))
+      .map((method) =>
+          buildStaticMapperImplementation(config, method, abstractClass))
       .toList();
   return staticMethods;
 }
 
 bool _isPrimitive(DartType type) {
-  return type.isDartCoreBool || type.isDartCoreDouble || type.isDartCoreInt || type.isDartCoreNum || type.isDartCoreString;
+  return type.isDartCoreBool ||
+      type.isDartCoreDouble ||
+      type.isDartCoreInt ||
+      type.isDartCoreNum ||
+      type.isDartCoreString ||
+      (type is InterfaceType && type.superclass?.isDartCoreEnum == true);
 }
 
 Class _generateMapperImplementationClass(
@@ -35,7 +42,7 @@ Class _generateMapperImplementationClass(
       ..name = '${abstractClass.displayName}Impl'
       ..constructors.addAll(
           abstractClass.constructors.map((c) => _generateConstructor(c)))
-      ..extend = refer('${abstractClass.displayName}')
+      ..extend = refer(abstractClass.displayName)
       ..methods.addAll(abstractClass.methods
           .where((method) => method.isAbstract)
           .map((method) =>
