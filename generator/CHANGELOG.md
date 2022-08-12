@@ -1,3 +1,6 @@
+# 1.2.8 
+- Revert Static mapping feature as it is totally broken
+
 # v1.2.7+1
 - Fix static mapping
 
