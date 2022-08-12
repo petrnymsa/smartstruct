@@ -1,3 +1,6 @@
+# v1.2.7+1
+- Fix static mapping
+
 # v1.2.7
 - Fix list null mapping
 
