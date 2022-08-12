@@ -6,8 +6,9 @@ part 'list.mapper.g.dart';
 class Source {
   final List<int> intList;
   final List<SourceEntry> entryList;
+  final List<String> propList;
 
-  Source(this.intList, this.entryList);
+  Source(this.intList, this.entryList, this.propList);
 }
 
 class SourceEntry {
@@ -32,6 +33,10 @@ class TargetEntry {
 
 @Mapper()
 abstract class ListMapper {
+  static List<String> _mapPropList(Source source) =>
+      source.entryList.map((e) => e.prop).toList();
+
+  @Mapping(target: 'propList', source: _mapPropList)
   Target fromSource(Source source);
   TargetEntry fromSourceEntry(SourceEntry source);
 }
