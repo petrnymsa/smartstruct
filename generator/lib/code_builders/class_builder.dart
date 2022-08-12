@@ -31,7 +31,10 @@ bool _isPrimitive(DartType type) {
       type.isDartCoreInt ||
       type.isDartCoreNum ||
       type.isDartCoreString ||
-      (type is InterfaceType && type.superclass?.isDartCoreEnum == true);
+      (type is InterfaceType && type.superclass?.isDartCoreEnum == true) ||
+      type.isDartCoreList ||
+      type.isDartCoreSet ||
+      type.isDartCoreMap;
 }
 
 Class _generateMapperImplementationClass(
